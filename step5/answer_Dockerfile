@@ -1,0 +1,36 @@
+#==========================================================================================
+# Stage raw
+#==========================================================================================
+FROM osbase:0.1 as raw
+
+USER netcool
+
+COPY NCOMNI_PROBE_FOR_SNMP.zip /tmp
+RUN unzip /tmp/NCOMNI_PROBE_FOR_SNMP.zip -d /tmp
+RUN /home/netcool/IBM/InstallationManager/eclipse/tools/imcl install \
+    com.ibm.tivoli.omnibus.integrations.nco-p-mttrapd_1.20.0.2 \
+    -acceptLicense -showProgress \
+    -sharedResourcesDirectory /home/netcool/IBM/IBMIMShared/ \
+    -repositories /tmp \
+    -installationDirectory $NCHOME
+
+ADD --chown=netcool:netcool configureProbe.sh $NCHOME/configureProbe.sh
+RUN chmod 774 $NCHOME/configureProbe.sh
+
+#==========================================================================================
+# Stage final
+#==========================================================================================
+FROM noibase:0.1 as snmp_probe_bin
+USER netcool
+ENV NCHOME=/opt/IBM/tivoli/netcool
+COPY --from=raw --chown=netcool:netcool /opt/IBM/tivoli/netcool /opt/IBM/tivoli/netcool
+
+ENV OS_NAME="NCOMS"
+ENV OS_SVC_NAME="objsrv"
+ENV OS_SVC_PORT="4100"
+ENV PROBE_COMMAND="nco_p_mttrapd"
+ENV PROBE_EXTRAS="-port 1162"
+ENV MESSAGE_LEVEL="debug"
+
+ENTRYPOINT $NCHOME/configureProbe.sh && exec $NCHOME/omnibus/probes/${PROBE_COMMAND} \
+  -server ${OS_NAME} ${PROBE_EXTRAS} -messagelevel ${MESSAGE_LEVEL} -messagelog stdout

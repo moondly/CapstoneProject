@@ -1,0 +1,10 @@
+FROM noibase:0.1
+
+USER netcool
+
+ENV NCHOME=/opt/IBM/tivoli/netcool
+
+WORKDIR /tmp
+COPY TVL_NTCL_OMN_V8.1.0.22_CORE_LNX_M.zip /tmp
+RUN unzip -q TVL_NTCL_OMN_V8.1.0.22_CORE_LNX_M.zip
+RUN ./install_silent.sh scripts/install_all.xml -acceptLicense

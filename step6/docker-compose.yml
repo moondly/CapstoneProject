@@ -1,0 +1,24 @@
+version: '3.7'
+
+services:
+  objsrv:
+    image: localhost:5000/os_bin:0.1
+    container_name: objsrv
+    networks:
+      - noi-net
+
+  snmp-probe:
+    image: localhost:5000/snmp_probe_bin:0.1
+    container_name: snmp-probe
+    depends_on: 
+      - objsrv
+    ports:
+      - "162:1162/udp"
+    networks:
+      - noi-net
+
+networks:
+  noi-net:
+    name: noi-net
+    driver: bridge
+

@@ -1,0 +1,17 @@
+FROM centos:7
+
+# We use one line to reduce the size of the final image. For every RUN command, a cumulative snapshot is
+# created and even. 
+# Please notice the "rm" in the end, meaning we clean up before commiting the RUN step
+RUN yum --setopt=tsflags=nodocs -y update && \
+    yum --setopt=tsflags=nodocs -y install tar hostname unzip audit-libs fontconfig \
+    freetype compat-libstdc++-33.i686 glibc.i686 gtk2 libICE libSM libX11 libXau \
+    libXcursor libXfixes libXi libXext libXft libXmu libXp libXpm libXrender libXt \
+    libXtst libstdc++.i686 libgcc.i686 libjpeg-turbo libpng12 motif dejavu-fonts-common \
+    dejavu-sans-fonts expat glibc libgcc libidn libstdc++ libuuid libxcb \
+    nss-softokn-freebl pam zlib nss-softokn-freebl.i686 xmlstarlet compat-libstdc++-33 tcpdump iproute &&\
+    rm -rf /var/cache/yum/* && yum clean all
+
+RUN useradd -c "Netcool user" netcool
+RUN mkdir -p /opt/IBM
+RUN chown -R netcool:netcool /opt/IBM

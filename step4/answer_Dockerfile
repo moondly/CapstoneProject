@@ -1,0 +1,18 @@
+FROM osbase:0.1 as raw
+
+ADD --chown=netcool:netcool configureOs.sh $NCHOME/configureOs.sh
+RUN chmod 774 $NCHOME/configureOs.sh
+
+# ----------
+# multistage building. Copy only what we want from the raw build above.
+# ----------
+FROM noibase:0.1 as os_bin
+ENV NCHOME=/opt/IBM/tivoli/netcool
+ENV OS_NAME="NCOMS"
+ENV OS_PORT="4100"
+
+USER netcool
+COPY --from=raw --chown=netcool:netcool /opt/IBM /opt/IBM
+
+ENTRYPOINT $NCHOME/configureOs.sh && exec $NCHOME/omnibus/bin/nco_objserv -name $OS_NAME \
+  -messagelog stdout
