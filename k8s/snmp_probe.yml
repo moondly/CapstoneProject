@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: snmp-probe
+  name: snmp-probe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: snmp-probe
+  template:
+    metadata:
+      labels:
+        app: snmp-probe
+    spec:
+      containers:
+      - image: localhost:32000/snmp_probe_bin:0.1
+        name: snmp-probe-bin
+        env:
+          - name: OS_NAME
+            value: "NCOMS"
+          - name: OS_SVC_NAME
+            value: "objsrv"
+          - name: OS_SVC_PORT
+            value: "4100"
+        ports:
+          - containerPort: 1162
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: snmp-probe
+  name: snmp-probe
+spec:
+  ports:
+  - name: 162-1162
+    port: 162
+    protocol: UDP
+    targetPort: 1162
+  selector:
+    app: snmp-probe
+  type: NodePort

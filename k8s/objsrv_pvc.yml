@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: objsrv
+  name: objsrv
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: objsrv
+  template:
+    metadata:
+      labels:
+        app: objsrv
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - image: localhost:32000/os_bin:0.1
+        name: objsrv-bin
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 4100
+        volumeMounts:
+          - mountPath: /opt/IBM/tivoli/netcool/omnibus/db 
+            name: noidata
+      volumes:
+        - name: noidata
+          persistentVolumeClaim:
+            claimName: noi-pvc 
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: objsrv
+  name: objsrv
+spec:
+  ports:
+  - name: 4100-4100
+    port: 4100
+    protocol: TCP
+    targetPort: 4100
+  selector:
+    app: objsrv
+  type: ClusterIP
